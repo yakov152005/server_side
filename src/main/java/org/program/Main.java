@@ -1,5 +1,5 @@
 package org.program;
-import com.fasterxml.jackson.core.JsonProcessingException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -14,207 +14,224 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Scanner;
 
+
+import static org.program.Constants.ErrorText.TEXT_8;
+import static org.program.Constants.Path.*;
+import static org.program.Constants.Text.*;
+
+
 public class Main {
 
-    public static CloseableHttpClient client = HttpClients.createDefault();
+    public static final ObjectMapper mapper = new ObjectMapper();
+    public static final CloseableHttpClient client = HttpClients.createDefault();
+    public static CloseableHttpResponse closeableHttpResponse;
+    public static final StringBuilder sb = new StringBuilder();
+    public static final HttpGet get = new HttpGet();
+    public static final HttpPost post = new HttpPost();
+    public static Response response = new Response();
     public static Scanner s = new Scanner(System.in);
-    public static final int ERROR_0 = 1000;
-    public static final int ERROR_1 = 1001;
-    public static final int ERROR_2 = 1002;
-    public static final int ERROR_3 = 1003;
-    public static final int ERROR_4 = 1004;
-    public static final int ERROR_5 = 1005;
-    public static final int ERROR_6 = 1006;
-    public static final int ERROR_7 = 1007;
 
-    public String userId;
+    private boolean run;
+    private String userId;
     private String task;
+    private int select;
 
-    public Main() throws IOException, URISyntaxException {
+    public Main() throws URISyntaxException, IOException {
         this.userId = null;
         this.task = null;
+        this.run = true;
+        closeableHttpResponse = null;
 
-        while (true) {
+        while (run){
 
-            mainMenu();
-            String chooseStr = s.nextLine();
-            int choose = stringToInt(chooseStr);
+            System.out.println(MENU);
+            String selectStr = s.nextLine();
+            this.select = stringToInt(selectStr);
 
-            if (choose == 0){
+            if (select == 0){
+                run = false;
                 System.out.println("Exit...");
                 break;
             }
-            switch (choose) {
+
+            switch (select){
                 case 1:
-                    userId = inputString();
+                    this.userId = enterName();
                     registerUser(userId);
                     break;
                 case 2:
-                    userId = inputString();
-                    getUserTask(userId);
+                    this.userId = enterName();
+                    getTasks(userId);
                     break;
                 case 3:
-                    userId = inputString();
-                    task = inputTask();
-                    addTask(userId,task);
+                    this.userId = enterName();
+                    this.task = enterTask();
+                    addTasks(userId,task);
                     break;
                 case 4:
-                    userId = inputString();
-                    this.task = inputTask();
+                    this.userId = enterName();
+                    this.task = enterTask();
                     setTaskDone(userId,task);
                     break;
                 default:
-                    System.out.println("Invalid option.");
+                    System.out.println("Input Invalid.., Try again!");
                     break;
             }
+
+        }
+
+    }
+
+    public static int stringToInt(String selectStr){
+        try {
+            return Integer.parseInt(selectStr);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    public static void registerUser(String userId) throws IOException, URISyntaxException {
-        URI uriBuilder = getUriBuilder("register")
-                        .setParameter("id",userId)
-                        .build();
-        String myResponse = postAndResponse(uriBuilder);
-        Response responseObj = getResponseObj(myResponse);
-        if (responseObj.isSuccess()) {
-            System.out.println("You have successfully registered");
+    public static String enterName(){
+        System.out.println("Enter user Id -- > ");
+        return s.nextLine();
+    }
+
+    public static String enterTask(){
+        System.out.println("Enter the task -- > ");
+        return s.nextLine();
+    }
+
+    public static URIBuilder getUri(String uri)throws URISyntaxException{
+        return new URIBuilder(uri);
+    }
+
+    public static void registerUser(String userId) throws URISyntaxException, IOException {
+        URI uri = getUri(REGISTER)
+                .setParameter(ID, userId)
+                .build();
+        post.setURI(uri);
+        String myResponse = EntityUtils.toString(client.execute(post).getEntity());
+        response = mapper.readValue(myResponse,Response.class);
+        if (response.isSuccess()){
+            System.out.println(SUCCESS);
+        }else {
+            errorCode(response,userId);
+        }
+    }
+
+    public static void getTasks(String userId)throws URISyntaxException, IOException{
+        URI uri = getUri(GET_TASK)
+                .setParameter(ID,userId)
+                .build();
+        HttpGet get = new HttpGet(uri);
+        CloseableHttpResponse chr = client.execute(get);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        Response responseObj = mapper.readValue(myResponse,Response.class);
+       if (responseObj.isSuccess()){
+           printWithSbTasks(responseObj);
+       }else {
+           errorCode(responseObj,userId);
+       }
+
+    }
+
+    public static void printWithSbTasks(Response responseObj){
+        StringBuilder sbTask = new StringBuilder();
+        sbTask.append("You have ").
+                append((responseObj.getTasks().stream().filter(r -> responseObj.isSuccess()).count())).
+                append(" open tasks!").append("\n");
+        for (int i = 0; i < responseObj.getTasks().size(); i++) {
+            sbTask.append((i + 1 )).
+                    append(": ").
+                    append(responseObj.getTasks().get(i).getTitle()).
+                    append(" - ").
+                    append((responseObj.getTasks().get(i).done ? " DONE" : " NOT DONE" )).
+                    append("\n");
+        }
+        System.out.println(sbTask);
+    }
+
+    public static void addTasks(String userId, String task)throws URISyntaxException , IOException{
+        URI uri = getUri(ADD_TASK)
+                .setParameter(ID,userId)
+                .setParameter(TEXT,task)
+                .build();
+        HttpPost post = new HttpPost(uri);
+        CloseableHttpResponse chr = client.execute(post);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        if (myResponse.isEmpty()){
+            System.out.println("The task --> " + task + " is add.");
+        }else {
+            Response response = mapper.readValue(myResponse,Response.class);
+            errorCode(response,userId);
+        }
+    }
+
+    public static void setTaskDone(String userId,String task)throws URISyntaxException, IOException{
+        URI uri = new URIBuilder(DONE_TASK)
+                .setParameter(ID,userId)
+                .setParameter(TEXT,task)
+                .build();
+        post.setURI(uri);
+        CloseableHttpResponse chr = client.execute(post);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        Response responseObj = mapper.readValue(myResponse,Response.class);
+        if (responseObj.isSuccess()){
+            System.out.println("The task -- > " + task + " is Done.");
         }else {
             errorCode(responseObj,userId);
         }
-
     }
 
-    public static void getUserTask(String userId) throws IOException, URISyntaxException {
-        URI uriBuilder = getUriBuilder("get-tasks")
-                .setParameter("id",userId)
-                .build();
-        String myResponse = getAndResponse(uriBuilder);
-        Response responseObj = getResponseObj(myResponse);
-        StringBuilder sb = new StringBuilder();
-        if (responseObj.isSuccess()){
-            sb.append("You have ").append(responseObj.getTasks()
-                    .stream()
-                    .filter(taskModel -> !taskModel.isDone())
-                    .toList()
-                    .size());
-            sb.append(" open tasks!").append("\n");
-            for (int i = 0; i < responseObj.getTasks().size(); i++) {
-                sb.append((i+1)).append(": ").append(responseObj.getTasks().get(i).getTitle()).
-                        append((responseObj.getTasks().get(i).isDone() ? " - DONE" : " - NOT DONE")).append("\n");
+
+    public static void errorCode(Response responseObj, String userId) {
+
+        Integer errorCode = responseObj.getErrorCode();
+        if (errorCode == null) {
+            System.out.println("Error code is null");
+            return;
+        }
+
+        ErrorOption e = ErrorOption.fromCode(errorCode);
+
+        if (e != null) {
+            switch (e) {
+                case E_0:
+                case E_2:
+                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                    break;
+                case E_1:
+                    sb.append(e.getCode()).append(USER).append(userId).append(" ").append(e.getMessage());
+                    break;
+                case E_3:
+                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                    break;
+                case E_4:
+                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                    break;
+                case E_5:
+                    sb.append(e.getCode()).append(USER).append(userId).append(" ").append(e.getMessage());
+                    break;
+                case E_6:
+                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                    break;
+                case E_7:
+                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                    break;
+                default:
+                    System.out.println(TEXT_8 + responseObj.getErrorCode());
+                    break;
             }
+            System.out.println(sb);
         }else {
-            errorCode(responseObj,userId);
-        }
-        System.out.println(sb);
-    }
-
-    public static void addTask(String userId, String text)throws IOException , URISyntaxException{
-        URI uriBuilder = getUriBuilder("add-task")
-                .setParameter("id",userId)
-                .setParameter("text",text)
-                .build();
-        String request = postAndResponse(uriBuilder);
-        if (request.isEmpty()){
-            System.out.println("The task is added. " + request);
-        }
-        else {
-            Response responseObj = getResponseObj(request);
-            errorCode(responseObj, userId);
-        }
-
-    }
-
-    public static void setTaskDone(String userId, String text)throws IOException, URISyntaxException{
-        URI uriBuilder = getUriBuilder("set-task-done")
-                .setParameter("id",userId)
-                .setParameter("text",text)
-                .build();
-        String request = postAndResponse(uriBuilder);
-        Response responseObj = getResponseObj(request);
-        if (responseObj.isSuccess()){
-            System.out.println("The task --> " + text + " Is Done.");
-        }else {
-            errorCode(responseObj,userId);
+            System.out.println(TEXT_8 + responseObj.getErrorCode());
         }
     }
 
-    public static void mainMenu(){
-        System.out.println("What to u want to do ? ");
-        System.out.println("""
-                    1 - Register to the system
-                    2 - Get a list of tasks saved for a specific user
-                    3 - Add a task to a specific user
-                    4 - Mark a task as done
-                    0 - Exit.
-                    """);
-    }
 
-    public static int stringToInt(String str){
-        int choose = 5;
-        try{
-            choose = Integer.parseInt(str);
-        }catch (NumberFormatException e){}
-        return choose;
-    }
-
-    public static String inputString(){
-        System.out.println("Enter your ID:");
-        return s.nextLine();
-    }
-
-    public static String inputTask(){
-        System.out.println("Enter task: ");
-        return s.nextLine();
-    }
-
-    public static URIBuilder getUriBuilder(String httpsName) throws URISyntaxException {
-        return new URIBuilder("https://app.seker.live/fm1/" + httpsName);
-    }
-
-    public static String postAndResponse(URI uriBuilder) throws IOException {
-        HttpPost request = new HttpPost(uriBuilder);
-        CloseableHttpResponse response = client.execute(request);
-        String result = EntityUtils.toString(response.getEntity());
-        System.out.println("HTTP Status: " +(response.getStatusLine().getStatusCode() == 200 ? "תקין" : "לא תקין" ) );  // הדפסת קוד הסטטוס של HTTP
-        response.close();
-        return result;
-    }
-
-    public static String getAndResponse(URI uriBuilder)throws IOException{
-        HttpGet get = new HttpGet(uriBuilder);
-        CloseableHttpResponse response = client.execute(get);
-        return EntityUtils.toString(response.getEntity());
-    }
-
-    public static Response getResponseObj(String myResponse) throws JsonProcessingException {
-        if (myResponse == null || myResponse.isEmpty()) {
-            throw new JsonProcessingException("Response is empty") {};
-        }
-        Response response;
-        response = new ObjectMapper().readValue(myResponse, Response.class);
-        return response;
-    }
-
-    public static void errorCode(Response responseObj, String userId){
-
-        if (responseObj.getErrorCode() == ERROR_2 || responseObj.getErrorCode() == ERROR_0 ) {
-            System.out.println("The id is not sent.");
-        } else if (responseObj.getErrorCode() == ERROR_3) {
-            System.out.println("You are already in the system.");
-        } else if (responseObj.getErrorCode() == ERROR_1) {
-            System.out.println("A user with this ID -- > '" + userId  + "' has not been registered!");
-        }else if (responseObj.getErrorCode() == ERROR_4){
-            System.out.println("The text is never send.");
-        } else if (responseObj.getErrorCode() == ERROR_5) {
-            System.out.println("For the current user --> '" + userId + "' there is an identical open task.");
-        } else if (responseObj.getErrorCode() == ERROR_6) {
-            System.out.println("This task does NOT exist in this user.");
-        } else if (responseObj.getErrorCode() == ERROR_7) {
-            System.out.println("This task is Marked Done. ");
-        }
-    }
-
-    public static void main(String[] args) throws IOException, URISyntaxException {
+    public static void main(String[] args) throws URISyntaxException, IOException {
         new Main();
     }
+
 }
+
+

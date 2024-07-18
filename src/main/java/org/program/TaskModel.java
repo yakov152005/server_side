@@ -1,5 +1,8 @@
 package org.program;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskModel {
     public String title;
     public String date;
