@@ -15,8 +15,10 @@ import java.net.URISyntaxException;
 import java.util.Scanner;
 
 
+import static org.program.Constants.CategoriesJoke.DEF_JOKE;
 import static org.program.Constants.ErrorText.TEXT_8;
 import static org.program.Constants.Path.*;
+import static org.program.Constants.PathGpt.*;
 import static org.program.Constants.Text.*;
 
 
@@ -31,6 +33,7 @@ public class Main {
     public static Response response = new Response();
     public static Scanner s = new Scanner(System.in);
 
+    private Joke joke;
     private boolean run;
     private String userId;
     private String task;
@@ -42,35 +45,223 @@ public class Main {
         this.run = true;
         closeableHttpResponse = null;
 
-        while (run){
+        while (run) {
+            System.out.println(MAIN_MENU);
 
-            System.out.println(MENU);
             String selectStr = s.nextLine();
             this.select = stringToInt(selectStr);
 
-            if (select == 0){
+            if (select == 0) {
+                System.err.println("Good Bye..");
                 run = false;
+            }
+
+            switch (select) {
+                case 1 -> switchCaseTasks();
+                case 2 -> switchCaseGpt();
+                case 3 -> switchCaseJoke();
+                case 0 -> System.exit(0);
+                default -> System.out.println("Invalid Option, Try again..");
+            }
+
+        }
+
+    }
+
+    private void switchCaseJoke()throws URISyntaxException, IOException{
+        joke = new Joke();
+        Joke defJoke = new Joke(DEF_JOKE);
+        while (true){
+
+            System.out.println(MENU_3);
+            String selectStr = s.nextLine();
+            int select = stringToInt(selectStr);
+
+
+            if (select < 0 || select > 7){
+                System.out.println("Invalid Option.");
+                return;
+            }
+
+            Constants.JokeCategory category = Constants.JokeCategory.fromInt(select);
+
+            switch (category){
+                case DARK, ANY, MISC, PROGRAMMING, PUN, SPOOKY, CHRISTMAS :
+                        joke = Joke.getJoke(category);
+                        if (joke != defJoke) {
+                            if (joke.getType().equalsIgnoreCase("TwoPart")) {
+                                System.out.println(joke.getSetup() + "\n" + joke.getDelivery());
+                            } else {
+                                System.out.println(joke.getDelivery());
+                            }
+                        }else {
+                            System.out.println(defJoke.getDelivery());
+                        }
+                    break;
+                case EXIT:
+                    System.err.println("Back to the main menu.. ");
+                    return;
+                default:
+                    System.err.println("Invalid Option. ");
+                    break;
+            }
+        }
+    }
+
+    private void switchCaseGpt() throws URISyntaxException, IOException {
+        while (true) {
+            System.out.println(MENU_2);
+            String selectStr = s.nextLine();
+            int select = stringToInt(selectStr);
+
+            if (select == 0) {
                 System.out.println("Exit...");
-                break;
+                return;
+            }
+
+            Constants.OptionSwitch option = Constants.OptionSwitch.fromInt(select);
+
+            if (option == null) {
+                System.err.println("Invalid selection. Try again.");
+                continue;
+            }
+
+            switch (option) {
+                case C1 -> loopGpt();
+                case C2 -> clearHistory();
+                case C3 -> checkBalance();
+                default -> System.err.println("Try again.");
+            }
+        }
+    }
+
+    private static void loopGpt() throws URISyntaxException, IOException {
+        Thread reminder = thread();
+
+        while (true){
+            String text = inputText();
+            if (text.equalsIgnoreCase("exit") ||
+                    text.equalsIgnoreCase("לצאת") ||
+                    text.equalsIgnoreCase("ביי") ||
+                    text.equalsIgnoreCase("Bye") ||
+                    text.equalsIgnoreCase("להתראות")||
+                    text.equalsIgnoreCase("Good Bye")) {
+                System.err.println("Back to the menu...");reminder.interrupt();return;}
+            sendMessage(text);
+        }
+    }
+
+
+
+    private static String inputText(){
+        System.out.println("Enter message: ");
+        return s.nextLine();
+    }
+
+    public static Thread thread (){
+        Thread reminderThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5 * 60 * 1000);
+                    System.out.println("If you want to exit, please enter a keyword for goodbye.");
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        reminderThread.start();
+        return reminderThread;
+    }
+
+    private static void sendMessage(String text)throws URISyntaxException,IOException{
+        URI uri = getUri(SEND_MESSAGE)
+                .setParameter(ID,ID_GPT)
+                .setParameter(TEXT,text)
+                .build();
+
+        HttpGet get = new HttpGet(uri);
+        CloseableHttpResponse chr = client.execute(get);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        if (!myResponse.isEmpty()){
+            Response responseObj = mapper.readValue(myResponse,Response.class);
+            if (responseObj.isSuccess()){
+                System.out.println(responseObj.getExtra());
+            }else {
+                errorCode(responseObj,ID_GPT);
+            }
+        }else {
+            System.err.println("The message was not sent.");
+        }
+
+    }
+
+    public static void clearHistory() throws URISyntaxException, IOException {
+        URI uri = getUri(CLEAR_HISTORY)
+                .setParameter(ID,ID_GPT)
+                .build();
+        get.setURI(uri);
+        CloseableHttpResponse chr = client.execute(get);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        if (!myResponse.isEmpty()){
+            Response responseObj = mapper.readValue(myResponse,Response.class);
+            if (responseObj.isSuccess()){
+                System.err.println("Clear chat...");
+            }else {
+                errorCode(responseObj,ID_GPT);
+            }
+        }
+    }
+
+    public static void checkBalance()throws URISyntaxException, IOException{
+        URI uri = getUri(CHECK_BALANCE)
+                .setParameter(ID,ID_GPT)
+                .build();
+        get.setURI(uri);
+        CloseableHttpResponse chr = client.execute(get);
+        String myResponse = EntityUtils.toString(chr.getEntity());
+        if (!myResponse.isEmpty()){
+            Response responseObj = mapper.readValue(myResponse,Response.class);
+            if (responseObj.isSuccess()){
+                System.err.println("--> Do u have |" + responseObj.getExtra() + "| message in the balance.");
+            }else {
+                errorCode(responseObj,ID_GPT);
+            }
+        }
+    }
+
+    private void switchCaseTasks() throws URISyntaxException, IOException {
+        
+        while (true){
+            System.out.println(MENU_1);
+            String selectStr = s.nextLine();
+            int select = stringToInt(selectStr);
+
+            String userId;
+            String task;
+            
+            if (select == 0){
+                System.err.println("Exit...");
+                return;
             }
 
             switch (select){
                 case 1:
-                    this.userId = enterName();
+                    userId = enterName();
                     registerUser(userId);
                     break;
                 case 2:
-                    this.userId = enterName();
+                    userId = enterName();
                     getTasks(userId);
                     break;
                 case 3:
-                    this.userId = enterName();
-                    this.task = enterTask();
+                    userId = enterName();
+                    task = enterTask();
                     addTasks(userId,task);
                     break;
                 case 4:
-                    this.userId = enterName();
-                    this.task = enterTask();
+                    userId = enterName();
+                    task = enterTask();
                     setTaskDone(userId,task);
                     break;
                 default:
@@ -79,15 +270,15 @@ public class Main {
             }
 
         }
-
     }
 
     public static int stringToInt(String selectStr){
         try {
             return Integer.parseInt(selectStr);
         } catch (NumberFormatException e) {
-            throw new RuntimeException(e);
+            System.err.println("ERROR, Please input integer.");
         }
+        return -1;
     }
 
     public static String enterName(){
@@ -136,18 +327,24 @@ public class Main {
 
     public static void printWithSbTasks(Response responseObj){
         StringBuilder sbTask = new StringBuilder();
-        sbTask.append("You have ").
-                append((responseObj.getTasks().stream().filter(r -> responseObj.isSuccess()).count())).
-                append(" open tasks!").append("\n");
-        for (int i = 0; i < responseObj.getTasks().size(); i++) {
-            sbTask.append((i + 1 )).
-                    append(": ").
-                    append(responseObj.getTasks().get(i).getTitle()).
-                    append(" - ").
-                    append((responseObj.getTasks().get(i).done ? " DONE" : " NOT DONE" )).
-                    append("\n");
+        if (responseObj.isSuccess()) {
+            sbTask.append("You have ").
+                    append((responseObj.getTasks()
+                            .stream()
+                            .filter(taskModel -> !taskModel.isDone())
+                                    .toList()
+                                            .size()));
+                    sbTask.append(" open tasks!").append("\n");
+            for (int i = 0; i < responseObj.getTasks().size(); i++) {
+                sbTask.append((i + 1)).
+                        append(": ").
+                        append(responseObj.getTasks().get(i).getTitle()).
+                        append(" - ").
+                        append((responseObj.getTasks().get(i).done ? " DONE" : " NOT DONE")).
+                        append("\n");
+            }
+            System.out.println(sbTask);
         }
-        System.out.println(sbTask);
     }
 
     public static void addTasks(String userId, String task)throws URISyntaxException , IOException{
@@ -195,34 +392,15 @@ public class Main {
 
         if (e != null) {
             switch (e) {
-                case E_0:
-                case E_2:
-                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
-                    break;
-                case E_1:
-                    sb.append(e.getCode()).append(USER).append(userId).append(" ").append(e.getMessage());
-                    break;
-                case E_3:
-                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
-                    break;
-                case E_4:
-                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
-                    break;
-                case E_5:
-                    sb.append(e.getCode()).append(USER).append(userId).append(" ").append(e.getMessage());
-                    break;
-                case E_6:
-                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
-                    break;
-                case E_7:
-                    sb.append(e.getCode()).append(LINE).append(e.getMessage());
-                    break;
-                default:
-                    System.out.println(TEXT_8 + responseObj.getErrorCode());
-                    break;
+                case E_0, E_2, E_3, E_4, E_6, E_7, E_3_0, E_3_1, E_3_2, E_3_3, E_3_5 ->
+                        sb.append(e.getCode()).append(LINE).append(e.getMessage());
+                case E_1, E_5 ->
+                        sb.append(e.getCode()).append(USER).append(userId).append(" ").append(e.getMessage());
+                default ->
+                        System.out.println(TEXT_8 + responseObj.getErrorCode());
             }
             System.out.println(sb);
-        }else {
+        } else {
             System.out.println(TEXT_8 + responseObj.getErrorCode());
         }
     }

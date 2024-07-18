@@ -12,6 +12,11 @@ public enum ErrorOption {
     E_5(ERROR_5,TEXT_5),
     E_6(ERROR_6,TEXT_6),
     E_7(ERROR_7,TEXT_7),
+    E_3_0(ERROR_3_0,TEXT_3_0),
+    E_3_1(ERROR_3_1,TEXT_3_1),
+    E_3_2(ERROR_3_2,TEXT_3_2),
+    E_3_3(ERROR_3_3,TEXT_3_3),
+    E_3_5(ERROR_3_5,TEXT_3_5)
     ;
 
     private final int code;
