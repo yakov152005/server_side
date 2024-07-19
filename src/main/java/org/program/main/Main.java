@@ -10,6 +10,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.program.jaksonclass.Response;
 import org.program.joke.Joke;
+import org.program.numbers.Numbers;
+import org.program.quotes.Quotes;
 import org.program.trivia.Question;
 import org.program.trivia.TriviaGame;
 import org.program.utils.Constants;
@@ -66,15 +68,96 @@ public class Main {
             }
 
             switch (select) {
-                case 1 -> switchCaseTasks();
-                case 2 -> switchCaseGpt();
+                case 1 -> switchCaseGpt();
+                case 2 -> switchCaseTasks();
                 case 3 -> switchCaseJoke();
                 case 4 -> switchCaseQuestion();
+                case 5 -> switchCaseNumbersFact();
+                case 6 -> switchCaseQuotes();
                 case 0 -> System.exit(0);
                 default -> System.out.println(DEF_2);
             }
 
         }
+
+    }
+
+    private void switchCaseQuotes() throws URISyntaxException, IOException {
+        List<Quotes> quotesList;
+
+        while (true) {
+            System.out.println(MENU_6);
+            String choiceStr = s.nextLine();
+            int choice = stringToInt(choiceStr);
+
+            if (choice == 0) {
+                System.out.println(BACK);
+                return;
+            }
+
+            if (choice < 0 || choice > 4) {
+                System.out.println(DEF_1);
+                return;
+            }
+
+            if (choice == 1 || choice == 4) {
+                Constants.EnumQuotes category = Constants.EnumQuotes.fromInt(choice);
+                switch (category) {
+                    case RANDOM, FAMOUS, HISTORY, ALBERT_EINSTEIN:
+                        quotesList = Quotes.getQuotes(category);
+                        if (quotesList != null && !quotesList.isEmpty()) {
+                            System.out.println(quotesList.get(new Random().nextInt(quotesList.size())));
+                        } else {
+                            System.out.println(DEF_3);
+                        }
+                        break;
+                    default:
+                        System.out.println(DEF_1);
+                        break;
+                }
+            }else {
+                System.out.println("בחירות 2 ו 3 לא זמינות כרגע.");
+            }
+        }
+    }
+
+
+
+
+    private static void switchCaseNumbersFact() throws URISyntaxException, IOException {
+        Numbers numbers;
+
+        while (true){
+            System.out.println(MENU_5);
+            String choiceStr = s.nextLine();
+            int choice = stringToInt(choiceStr);
+
+            if (choice < 0 || choice > 4){
+                System.err.println(DEF_1);
+                return;
+            }
+
+            if (choice == 0){
+                System.err.println(BACK);
+                return;
+            }
+
+            Constants.FactNumber factNumber = Constants.FactNumber.fromInt(choice);
+            switch (factNumber){
+                case MATH,DATE,YEAR,TRIVIA:
+                    numbers = Numbers.getFact(factNumber);
+                    if (numbers != null && numbers.isFound()) {
+                        System.out.println(numbers.getType() + "\n" + "\t" + numbers.getText());
+                    }else {
+                        System.out.println("Not Found.");
+                    }
+                    break;
+                case null, default:
+                    System.out.println(DEF_JOKE);
+                    break;
+            }
+        }
+
 
     }
 

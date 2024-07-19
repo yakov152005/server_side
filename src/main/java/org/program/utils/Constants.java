@@ -40,16 +40,19 @@ public class Constants {
 
         public static final String DEF_1 = "Invalid Option.";
         public static final String DEF_2 = "Invalid Option, Try again..";
+        public static final String DEF_3 = "The Fact -- > idk.";
     }
 
     public static class Text{
 
 
         public static final String MAIN_MENU = "What would you like to do? " + "\n" +"""
-                1. View tasks
-                2. Talk to GPT-4 chat
+                1. Talk to GPT-4 chat
+                2. View tasks
                 3. Get Jokes By category
                 4. Trivia Game
+                5. Get Numbers Fact
+                6. Get Quotes
                 0. To Exit
                 Please select an option:
                 """;
@@ -89,6 +92,22 @@ public class Constants {
                     6 - Sports
                     7 - Celebrities
                     8 - Anime
+                    0 - Back to the main menu.
+                    """;
+        public static final String MENU_5 = "Choose which category you want for all Numbers Fact Options:\n" +
+                """
+                    1 - Math
+                    2 - Trivia
+                    3 - Date
+                    4 - Year 
+                    0 - Back to the main menu.
+                    """;
+        public static final String MENU_6 = "Choose which category you want for all Quotes Options:\n" +
+                """
+                    1 - Random
+                    2 - Famous
+                    3 - History
+                    4 - Albert Einstein
                     0 - Back to the main menu.
                     """;
 
@@ -203,6 +222,57 @@ public class Constants {
                 default -> throw new IllegalArgumentException("Invalid category value: " + value);
             };
         }
+    }
+
+    public static class NumbersFact{
+
+        public static final String PATH = "http://numbersapi.com/random";
+        public static final String MATH = PATH + "/math?json";
+        public static final String TRIVIA = PATH + "/trivia?json";
+        public static final String DATE = PATH + "/date?json";
+        public static final String YEAR = PATH + "/year?json";
+
+        public static final String[] NUMBERS = {MATH,TRIVIA,DATE,YEAR};
+    }
+
+    public enum FactNumber{
+        MATH,TRIVIA,DATE,YEAR;
+
+        public static FactNumber fromInt(int value){
+            return switch (value){
+                case 1 -> MATH;
+                case 2 -> TRIVIA;
+                case 3 -> DATE;
+                case 4 -> YEAR;
+                default -> throw new IllegalStateException("Unexpected value: " + value);
+            };
+        }
+    }
+
+    public static class QuotesCon{
+
+        public static final String PATH = "https://api.quotable.io";
+        public static final String RANDOM = PATH + "/random";
+        public static final String FAMOUS = PATH + "/quotes/random?tags=technology,famous-quotes";
+        public static final String HISTORY = PATH + "/quotes/random?tags=history|civil-rights";
+        public static final String ALBERT_EINSTEIN = PATH + "/quotes?author=albert-einstein";
+        public static final String[] QUOTES = {RANDOM,FAMOUS,HISTORY,ALBERT_EINSTEIN};
+    }
+
+    public enum EnumQuotes{
+        RANDOM,FAMOUS,HISTORY,ALBERT_EINSTEIN;
+
+        public static EnumQuotes fromInt( int value){
+           return switch (value){
+                case 1 -> RANDOM;
+                case 2 -> FAMOUS;
+                case 3 -> HISTORY;
+                case 4 -> ALBERT_EINSTEIN;
+                default -> throw new IllegalStateException("Unexpected value: " + value);
+            };
+        }
+
+
     }
 
 }
