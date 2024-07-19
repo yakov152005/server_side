@@ -71,7 +71,7 @@ public class Main {
                 case 1 -> switchCaseGpt();
                 case 2 -> switchCaseTasks();
                 case 3 -> switchCaseJoke();
-                case 4 -> switchCaseQuestion();
+                case 4 -> switchCaseTriviaGame();
                 case 5 -> switchCaseNumbersFact();
                 case 6 -> switchCaseQuotes();
                 case 0 -> System.exit(0);
@@ -95,15 +95,14 @@ public class Main {
                 return;
             }
 
-            if (choice < 0 || choice > 4) {
+            if (choice < 0 || choice > 2) {
                 System.out.println(DEF_1);
                 return;
             }
 
-            if (choice == 1 || choice == 4) {
                 Constants.EnumQuotes category = Constants.EnumQuotes.fromInt(choice);
                 switch (category) {
-                    case RANDOM, FAMOUS, HISTORY, ALBERT_EINSTEIN:
+                    case RANDOM, ALBERT_EINSTEIN:
                         quotesList = Quotes.getQuotes(category);
                         if (quotesList != null && !quotesList.isEmpty()) {
                             System.out.println(quotesList.get(new Random().nextInt(quotesList.size())));
@@ -115,9 +114,6 @@ public class Main {
                         System.out.println(DEF_1);
                         break;
                 }
-            }else {
-                System.out.println("בחירות 2 ו 3 לא זמינות כרגע.");
-            }
         }
     }
 
@@ -162,7 +158,7 @@ public class Main {
     }
 
 
-    private void switchCaseQuestion() throws URISyntaxException, IOException {
+    private void switchCaseTriviaGame() throws URISyntaxException, IOException {
 
         while (true) {
             System.out.println(MENU_4);
@@ -188,10 +184,8 @@ public class Main {
             if (triviaGame.getResponse_code() == 0) {
                 List<Question> questionList = triviaGame.getResults();
                 for (Question question : questionList) {
-
                     String correctAnswer = question.getCorrect_answer();
                     System.out.println(question.toString());
-                    System.out.println(correctAnswer);
                     System.out.println("Choose the correct answer -- > ");
                     String answerUser = s.nextLine();
 
@@ -286,7 +280,7 @@ public class Main {
 
     private static void loopGpt() throws URISyntaxException, IOException {
         Thread reminder = thread();
-
+        System.err.println("If you want to exit, please enter a keyword for goodbye.");
         while (true){
             String text = inputText();
             if (text.equalsIgnoreCase("exit") ||
@@ -294,7 +288,8 @@ public class Main {
                     text.equalsIgnoreCase("ביי") ||
                     text.equalsIgnoreCase("Bye") ||
                     text.equalsIgnoreCase("להתראות")||
-                    text.equalsIgnoreCase("Good Bye")) {
+                    text.equalsIgnoreCase("Good Bye")||
+                    text.equalsIgnoreCase("goodbye")){
                 System.err.println("Back to the menu...");reminder.interrupt();return;}
             sendMessage(text);
         }

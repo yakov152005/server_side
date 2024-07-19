@@ -21,7 +21,7 @@ public class Quotes {
     private String author;
     private String content;
 
-    // מחלקת עזר לתוצאות
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Result {
         private List<Quotes> results;
@@ -35,9 +35,10 @@ public class Quotes {
         }
     }
 
-    // מתודה לקבלת ציטוטים
+
     public static List<Quotes> getQuotes(EnumQuotes category) throws URISyntaxException, IOException {
-        URI uri = new URI(QuotesCon.QUOTES[category.ordinal()]);
+        URI uri = getUri(QuotesCon.QUOTES[category.ordinal()])
+                .build();
         get.setURI(uri);
         CloseableHttpResponse chr = client.execute(get);
 
@@ -45,7 +46,7 @@ public class Quotes {
             List<String> myResponse = Collections.singletonList(EntityUtils.toString(chr.getEntity()));
             return mapper.readValue(String.valueOf(myResponse), mapper.getTypeFactory().constructCollectionType(List.class, Quotes.class));
         }
-        if (category == EnumQuotes.ALBERT_EINSTEIN) {
+        if (category == EnumQuotes.ALBERT_EINSTEIN ) {
            String myResponse2 = EntityUtils.toString(chr.getEntity());
             Result einsteinResult = mapper.readValue(myResponse2, Result.class);
             return einsteinResult.getResults();

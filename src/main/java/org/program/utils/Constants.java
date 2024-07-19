@@ -105,9 +105,7 @@ public class Constants {
         public static final String MENU_6 = "Choose which category you want for all Quotes Options:\n" +
                 """
                     1 - Random
-                    2 - Famous
-                    3 - History
-                    4 - Albert Einstein
+                    2 - Albert Einstein
                     0 - Back to the main menu.
                     """;
 
@@ -253,21 +251,17 @@ public class Constants {
 
         public static final String PATH = "https://api.quotable.io";
         public static final String RANDOM = PATH + "/random";
-        public static final String FAMOUS = PATH + "/quotes/random?tags=technology,famous-quotes";
-        public static final String HISTORY = PATH + "/quotes/random?tags=history|civil-rights";
         public static final String ALBERT_EINSTEIN = PATH + "/quotes?author=albert-einstein";
-        public static final String[] QUOTES = {RANDOM,FAMOUS,HISTORY,ALBERT_EINSTEIN};
+        public static final String[] QUOTES = {RANDOM,ALBERT_EINSTEIN};
     }
 
     public enum EnumQuotes{
-        RANDOM,FAMOUS,HISTORY,ALBERT_EINSTEIN;
+        RANDOM,ALBERT_EINSTEIN;
 
         public static EnumQuotes fromInt( int value){
            return switch (value){
                 case 1 -> RANDOM;
-                case 2 -> FAMOUS;
-                case 3 -> HISTORY;
-                case 4 -> ALBERT_EINSTEIN;
+                case 2 -> ALBERT_EINSTEIN;
                 default -> throw new IllegalStateException("Unexpected value: " + value);
             };
         }
