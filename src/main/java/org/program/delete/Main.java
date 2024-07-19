@@ -1,4 +1,4 @@
-package org.program.main2;
+package org.program.delete;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,9 +8,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.program.Response;
+import org.program.jaksonclass.Response;
 
-import static org.program.Constants.ErrorNum.*;
+import static org.program.utils.Constants.ErrorNum.*;
 
 import java.io.IOException;
 import java.net.URI;

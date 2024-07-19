@@ -1,17 +1,16 @@
-package org.program;
+package org.program.joke;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 
 
-import static org.program.Constants.*;
-import static org.program.Constants.CategoriesJoke.DEF_JOKE;
-import static org.program.Main.*;
-import static org.program.main2.Main.client;
+import static org.program.utils.Constants.*;
+import static org.program.utils.Constants.CategoriesJoke.DEF_JOKE;
+import static org.program.main.Main.*;
+import static org.program.delete.Main.client;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Joke {

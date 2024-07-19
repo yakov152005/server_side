@@ -1,4 +1,4 @@
-package org.program;
+package org.program.jaksonclass;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

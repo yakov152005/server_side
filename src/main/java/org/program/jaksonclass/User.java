@@ -1,4 +1,4 @@
-package org.program;
+package org.program.jaksonclass;
 public class User {
     private String id;
 

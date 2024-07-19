@@ -1,6 +1,6 @@
-package org.program;
+package org.program.utils;
 
-import static org.program.Constants.Path.PATH;
+import static org.program.utils.Constants.Path.PATH;
 
 public class Constants {
 
@@ -37,6 +37,9 @@ public class Constants {
         public static final String TEXT_3_2 = "The quota of requests for this identity card is over..";
         public static final String TEXT_3_3 = "No text message will be sent.";
         public static final String TEXT_3_5 = "General error.";
+
+        public static final String DEF_1 = "Invalid Option.";
+        public static final String DEF_2 = "Invalid Option, Try again..";
     }
 
     public static class Text{
@@ -46,6 +49,7 @@ public class Constants {
                 1. View tasks
                 2. Talk to GPT-4 chat
                 3. Get Jokes By category
+                4. Trivia Game
                 0. To Exit
                 Please select an option:
                 """;
@@ -75,11 +79,25 @@ public class Constants {
                     7 - Christmas
                     0 - Back to the main menu.
                     """;
+        public static final String MENU_4 = "Choose which category you want for all Trivia Options:\n" +
+                """
+                    1 - General Knowledge
+                    2 - Music
+                    3 - Video Games 
+                    4 - Computers
+                    5 - Mathematics
+                    6 - Sports
+                    7 - Celebrities
+                    8 - Anime
+                    0 - Back to the main menu.
+                    """;
+
         public static final String ID = "id";
         public static final String TEXT = "text";
         public static final String SUCCESS = "Register success!";
         public static final String LINE = " --> ";
         public static final String USER = ", User: ";
+        public static final String BACK = "Back to the main menu...";
 
     }
 
@@ -148,6 +166,39 @@ public class Constants {
                 case 5 -> PUN;
                 case 6 -> SPOOKY;
                 case 7 -> CHRISTMAS;
+                case 0 -> EXIT;
+                default -> throw new IllegalArgumentException("Invalid category value: " + value);
+            };
+        }
+    }
+
+    public static class CategoriesQuestion{
+
+        public static final String PATH = "https://opentdb.com/api.php?amount=1&type=multiple";
+        public static final String GENERAL_KNOWLEDGE = PATH + "&category=9";
+        public static final String MUSIC = PATH + "&category=12";
+        public static final String VIDEO_GAMES = PATH + "&category=15";
+        public static final String COMPUTERS = PATH + "&category=18";
+        public static final String MATHEMATICS = PATH + "&category=19";
+        public static final String SPORTS = PATH + "&category=21";
+        public static final String CELEBRITIES  = PATH + "&category=26";
+        public static final String ANIME = PATH + "&category=31";
+        public static final String[] TRIVIA_OPTIONS = {GENERAL_KNOWLEDGE,MUSIC,VIDEO_GAMES, COMPUTERS,MATHEMATICS,SPORTS,CELEBRITIES,ANIME};
+    }
+
+    public enum QuestionCategory{
+        GENERAL_KNOWLEDGE,MUSIC,VIDEO_GAMES, COMPUTERS,MATHEMATICS,SPORTS,CELEBRITIES,ANIME,EXIT;
+
+        public static QuestionCategory fromInt(int value){
+            return switch (value){
+                case 1 -> GENERAL_KNOWLEDGE;
+                case 2 -> MUSIC;
+                case 3 -> VIDEO_GAMES;
+                case 4 -> COMPUTERS;
+                case 5 -> MATHEMATICS;
+                case 6 -> SPORTS;
+                case 7 -> CELEBRITIES;
+                case 8 -> ANIME;
                 case 0 -> EXIT;
                 default -> throw new IllegalArgumentException("Invalid category value: " + value);
             };

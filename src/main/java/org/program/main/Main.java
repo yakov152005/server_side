@@ -1,4 +1,4 @@
-package org.program;
+package org.program.main;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -8,18 +8,26 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.program.jaksonclass.Response;
+import org.program.joke.Joke;
+import org.program.trivia.Question;
+import org.program.trivia.TriviaGame;
+import org.program.utils.Constants;
+import org.program.utils.ErrorOption;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Scanner;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
-import static org.program.Constants.CategoriesJoke.DEF_JOKE;
-import static org.program.Constants.ErrorText.TEXT_8;
-import static org.program.Constants.Path.*;
-import static org.program.Constants.PathGpt.*;
-import static org.program.Constants.Text.*;
+import static org.program.utils.Constants.CategoriesJoke.DEF_JOKE;
+import static org.program.utils.Constants.CategoriesQuestion.TRIVIA_OPTIONS;
+import static org.program.utils.Constants.ErrorText.*;
+import static org.program.utils.Constants.Path.*;
+import static org.program.utils.Constants.PathGpt.*;
+import static org.program.utils.Constants.Text.*;
 
 
 public class Main {
@@ -32,6 +40,7 @@ public class Main {
     public static final HttpPost post = new HttpPost();
     public static Response response = new Response();
     public static Scanner s = new Scanner(System.in);
+    public static final AtomicInteger forPoint = new AtomicInteger();
 
     private Joke joke;
     private boolean run;
@@ -60,15 +69,72 @@ public class Main {
                 case 1 -> switchCaseTasks();
                 case 2 -> switchCaseGpt();
                 case 3 -> switchCaseJoke();
+                case 4 -> switchCaseQuestion();
                 case 0 -> System.exit(0);
-                default -> System.out.println("Invalid Option, Try again..");
+                default -> System.out.println(DEF_2);
             }
 
         }
 
     }
 
-    private void switchCaseJoke()throws URISyntaxException, IOException{
+
+    private void switchCaseQuestion() throws URISyntaxException, IOException {
+
+        while (true) {
+            System.out.println(MENU_4);
+            String choiceStr = s.nextLine();
+            int choice = stringToInt(choiceStr);
+
+            if (choice < 0 || choice > TRIVIA_OPTIONS.length){
+                System.out.println(DEF_1);
+                System.err.println(BACK);
+                return;
+            }
+
+            Constants.QuestionCategory questionCategory = Constants.QuestionCategory.fromInt(choice);
+
+            if (questionCategory == Constants.QuestionCategory.EXIT){
+                System.err.println(BACK);
+                return;
+            }
+
+
+            TriviaGame triviaGame = getTriviaQuestion(questionCategory);
+            int point = 0;
+            if (triviaGame.getResponse_code() == 0) {
+                List<Question> questionList = triviaGame.getResults();
+                for (Question question : questionList) {
+
+                    String correctAnswer = question.getCorrect_answer();
+                    System.out.println(question.toString());
+                    System.out.println(correctAnswer);
+                    System.out.println("Choose the correct answer -- > ");
+                    String answerUser = s.nextLine();
+
+                    if (answerUser.equalsIgnoreCase(correctAnswer)) {
+                        point = forPoint.addAndGet(point + 1);
+                        System.out.println("Correct! ,Your point is -- > " + point);
+                    } else {
+                        point = forPoint.addAndGet(point - 1);
+                        System.out.println("Incorrect answer :(, Your point is -- > " + point);
+                    }
+                }
+            }
+        }
+    }
+
+
+    private TriviaGame getTriviaQuestion(Constants.QuestionCategory category) throws URISyntaxException, IOException {
+        URI uri = new URI(Constants.CategoriesQuestion.TRIVIA_OPTIONS[category.ordinal()]);
+        HttpGet get = new HttpGet(uri);
+        CloseableHttpResponse chr = client.execute(get);
+        String request = EntityUtils.toString(chr.getEntity());
+        return mapper.readValue(request,TriviaGame.class);
+    }
+
+
+        private void switchCaseJoke()throws URISyntaxException{
         joke = new Joke();
         Joke defJoke = new Joke(DEF_JOKE);
         while (true){
@@ -79,7 +145,7 @@ public class Main {
 
 
             if (select < 0 || select > 7){
-                System.out.println("Invalid Option.");
+                System.out.println(DEF_1);
                 return;
             }
 

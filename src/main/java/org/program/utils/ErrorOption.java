@@ -1,7 +1,7 @@
-package org.program;
+package org.program.utils;
 
-import static org.program.Constants.ErrorNum.*;
-import static org.program.Constants.ErrorText.*;
+import static org.program.utils.Constants.ErrorNum.*;
+import static org.program.utils.Constants.ErrorText.*;
 
 public enum ErrorOption {
     E_0(ERROR_0,TEXT_1),
