@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
-import static org.program.main.Main.*;
+import static org.program.main.Program.*;
 import static org.program.utils.Constants.*;
 import static org.program.utils.Constants.NumbersFact.*;
 

@@ -8,6 +8,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.program.image.ImageWindow;
 import org.program.jaksonclass.Response;
 import org.program.joke.Joke;
 import org.program.numbers.Numbers;
@@ -17,6 +18,7 @@ import org.program.trivia.TriviaGame;
 import org.program.utils.Constants;
 import org.program.utils.ErrorOption;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,7 +34,7 @@ import static org.program.utils.Constants.PathGpt.*;
 import static org.program.utils.Constants.Text.*;
 
 
-public class Main {
+public class Program {
 
     public static final ObjectMapper mapper = new ObjectMapper();
     public static final CloseableHttpClient client = HttpClients.createDefault();
@@ -50,7 +52,7 @@ public class Main {
     private String task;
     private int select;
 
-    public Main() throws URISyntaxException, IOException {
+    public Program() throws URISyntaxException, IOException {
         this.userId = null;
         this.task = null;
         this.run = true;
@@ -74,12 +76,17 @@ public class Main {
                 case 4 -> switchCaseTriviaGame();
                 case 5 -> switchCaseNumbersFact();
                 case 6 -> switchCaseQuotes();
+                case 7 -> openWindow();
                 case 0 -> System.exit(0);
                 default -> System.out.println(DEF_2);
             }
 
         }
 
+    }
+
+    private void openWindow() {
+        SwingUtilities.invokeLater(ImageWindow::new);
     }
 
     private void switchCaseQuotes() throws URISyntaxException, IOException {
@@ -547,11 +554,6 @@ public class Main {
         } else {
             System.out.println(TEXT_8 + responseObj.getErrorCode());
         }
-    }
-
-
-    public static void main(String[] args) throws URISyntaxException, IOException {
-        new Main();
     }
 
 }

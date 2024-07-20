@@ -1,7 +1,6 @@
 package org.program.quotes;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
@@ -12,9 +11,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.program.utils.Constants.*;
-import static org.program.main.Main.*;
-import static org.program.main.Main.client;
-import static org.program.main.Main.get;
+import static org.program.main.Program.*;
+import static org.program.main.Program.client;
+import static org.program.main.Program.get;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Quotes {
