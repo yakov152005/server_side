@@ -1,5 +1,6 @@
 package org.program.main;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -13,6 +14,7 @@ import org.program.jaksonclass.Response;
 import org.program.joke.Joke;
 import org.program.numbers.Numbers;
 import org.program.quotes.Quotes;
+import org.program.randomdog.Window;
 import org.program.trivia.Question;
 import org.program.trivia.TriviaGame;
 import org.program.utils.Constants;
@@ -77,12 +79,20 @@ public class Program {
                 case 5 -> switchCaseNumbersFact();
                 case 6 -> switchCaseQuotes();
                 case 7 -> openWindow();
+                case 8 -> displayRandomDogImage();
                 case 0 -> System.exit(0);
                 default -> System.out.println(DEF_2);
             }
 
         }
 
+    }
+
+    private void displayRandomDogImage() {
+        SwingUtilities.invokeLater(() -> {
+            Window window = new Window();
+            window.displayRandomDogImage();
+        });
     }
 
     private void openWindow() {
@@ -107,20 +117,20 @@ public class Program {
                 return;
             }
 
-                Constants.EnumQuotes category = Constants.EnumQuotes.fromInt(choice);
-                switch (category) {
-                    case RANDOM, ALBERT_EINSTEIN:
-                        quotesList = Quotes.getQuotes(category);
-                        if (quotesList != null && !quotesList.isEmpty()) {
-                            System.out.println(quotesList.get(new Random().nextInt(quotesList.size())));
-                        } else {
-                            System.out.println(DEF_3);
-                        }
-                        break;
-                    default:
-                        System.out.println(DEF_1);
-                        break;
-                }
+            Constants.EnumQuotes category = Constants.EnumQuotes.fromInt(choice);
+            switch (category) {
+                case RANDOM, ALBERT_EINSTEIN:
+                    quotesList = Quotes.getQuotes(category);
+                    if (quotesList != null && !quotesList.isEmpty()) {
+                        System.out.println(quotesList.get(new Random().nextInt(quotesList.size())));
+                    } else {
+                        System.out.println(DEF_3);
+                    }
+                    break;
+                default:
+                    System.out.println(DEF_1);
+                    break;
+            }
         }
     }
 
@@ -218,7 +228,7 @@ public class Program {
     }
 
 
-        private void switchCaseJoke()throws URISyntaxException{
+    private void switchCaseJoke()throws URISyntaxException{
         joke = new Joke();
         Joke defJoke = new Joke(DEF_JOKE);
         while (true){
@@ -237,16 +247,16 @@ public class Program {
 
             switch (category){
                 case DARK, ANY, MISC, PROGRAMMING, PUN, SPOOKY, CHRISTMAS :
-                        joke = Joke.getJoke(category);
-                        if (joke != defJoke) {
-                            if (joke.getType().equalsIgnoreCase("TwoPart")) {
-                                System.out.println(joke.getSetup() + "\n" + joke.getDelivery());
-                            } else {
-                                System.out.println(joke.getDelivery());
-                            }
-                        }else {
-                            System.out.println(defJoke.getDelivery());
+                    joke = Joke.getJoke(category);
+                    if (joke != defJoke) {
+                        if (joke.getType().equalsIgnoreCase("TwoPart")) {
+                            System.out.println(joke.getSetup() + "\n" + joke.getDelivery());
+                        } else {
+                            System.out.println(joke.getDelivery());
                         }
+                    }else {
+                        System.out.println(defJoke.getDelivery());
+                    }
                     break;
                 case EXIT:
                     System.err.println("Back to the main menu.. ");
@@ -335,7 +345,7 @@ public class Program {
         CloseableHttpResponse chr = client.execute(get);
         String myResponse = EntityUtils.toString(chr.getEntity());
         if (!myResponse.isEmpty()){
-            Response responseObj = mapper.readValue(myResponse,Response.class);
+            Response responseObj = mapper.readValue(myResponse,Response.class); // new TypeReference<>() {}
             if (responseObj.isSuccess()){
                 System.out.println(responseObj.getExtra());
             }else {
@@ -382,7 +392,7 @@ public class Program {
     }
 
     private void switchCaseTasks() throws URISyntaxException, IOException {
-        
+
         while (true){
             System.out.println(MENU_1);
             String selectStr = s.nextLine();
@@ -390,7 +400,7 @@ public class Program {
 
             String userId;
             String task;
-            
+
             if (select == 0){
                 System.err.println("Exit...");
                 return;
@@ -451,8 +461,9 @@ public class Program {
                 .setParameter(ID, userId)
                 .build();
         post.setURI(uri);
-        String myResponse = EntityUtils.toString(client.execute(post).getEntity());
-        response = mapper.readValue(myResponse,Response.class);
+//        String myResponse = EntityUtils.toString(client.execute(post).getEntity());
+//        response = mapper.readValue(myResponse,Response.class);
+        response = mapper.readValue(client.execute(post).getEntity().getContent(),new TypeReference<>() {});
         if (response.isSuccess()){
             System.out.println(SUCCESS);
         }else {
@@ -468,11 +479,11 @@ public class Program {
         CloseableHttpResponse chr = client.execute(get);
         String myResponse = EntityUtils.toString(chr.getEntity());
         Response responseObj = mapper.readValue(myResponse,Response.class);
-       if (responseObj.isSuccess()){
-           printWithSbTasks(responseObj);
-       }else {
-           errorCode(responseObj,userId);
-       }
+        if (responseObj.isSuccess()){
+            printWithSbTasks(responseObj);
+        }else {
+            errorCode(responseObj,userId);
+        }
 
     }
 
@@ -483,9 +494,9 @@ public class Program {
                     append((responseObj.getTasks()
                             .stream()
                             .filter(taskModel -> !taskModel.isDone())
-                                    .toList()
-                                            .size()));
-                    sbTask.append(" open tasks!").append("\n");
+                            .toList()
+                            .size()));
+            sbTask.append(" open tasks!").append("\n");
             for (int i = 0; i < responseObj.getTasks().size(); i++) {
                 sbTask.append((i + 1)).
                         append(": ").
@@ -557,5 +568,4 @@ public class Program {
     }
 
 }
-
 

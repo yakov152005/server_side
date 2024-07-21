@@ -132,8 +132,10 @@ public class ImageWindow extends JFrame {
 
         setSize(WIDTH_DEFAULT, HEIGHT_DEFAULT);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        setAlwaysOnTop(true);
-        toFront();
+//        setAlwaysOnTop(true);
+//        toFront();
+        setFocusableWindowState(true);
+        setFocusable(true);
         setLocationRelativeTo(null);
         setVisible(true);
     }

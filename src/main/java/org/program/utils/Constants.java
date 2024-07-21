@@ -55,6 +55,7 @@ public class Constants {
                 5. Get Numbers Fact
                 6. Get Quotes
                 7. Image Window Manipulator
+                8. Get Random Dog Photo
                 0. To Exit
                 Please select an option:
                 """;
